@@ -13,11 +13,10 @@ import java.security.PublicKey;
 public class ClientMain {
 	static int serverPort = 4030;
 	static private Socket socket;
-	static private clientutil util;
+	static private ClientUtil util;
 	static private SecurityFunctions f;
-
 	public static void main(String [] args) throws IOException, UnknownHostException {
-		util = new clientutil();
+		util = new ClientUtil();
 		f = new SecurityFunctions();
 		PublicKey publicKey = f.read_kplus("src/dhclient/datos_asim_srv.pub","0");
 

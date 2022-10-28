@@ -1,6 +1,6 @@
 package dhclient;
 
-public class clientutil {
+public class ClientUtil {
 	public byte[] str2byte( String ss)
 	{	
 		// Encapsulamiento con hexadecimales
