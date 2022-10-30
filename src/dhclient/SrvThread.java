@@ -153,7 +153,9 @@ public class SrvThread extends Thread{
     		System.out.println(dlg + " llave maestra: " + str_llave);
     		
     		// generating symmetric key
+			//llave del servidor para cifrar (simetrica)
 			SecretKey sk_srv = f.csk1(str_llave);
+			//llave del HMAC para cifrar (simetrica)
 			SecretKey sk_mac = f.csk2(str_llave);
 			
 			String str_consulta = dc.readLine();

@@ -4,17 +4,31 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.math.BigInteger;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.net.InetAddress;
 
 import java.security.PublicKey;
+import java.security.SecureRandom;
 
 public class ClientMain {
 	static int serverPort = 4030;
 	static private Socket socket;
 	static private ClientUtil util;
 	static private SecurityFunctions f;
+
+	private static BigInteger G2Y(BigInteger base, BigInteger exponente, BigInteger modulo) {
+		// la base es el g
+		return base.modPow(exponente,modulo);
+	}
+
+	private static BigInteger calcular_llave_maestra(BigInteger base, BigInteger exponente, BigInteger modulo) {
+		//la base es el y del otro / el exponente es el x propio / el modulo es el p compartido 
+		return base.modPow(exponente, modulo);
+	}
+
+
 	public static void main(String [] args) throws IOException, UnknownHostException {
 		util = new ClientUtil();
 		f = new SecurityFunctions();
@@ -65,9 +79,27 @@ public class ClientMain {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		//Part 2: Calculate g2y and send to server
+		
+		int idCl = 1;
+		SecureRandom r = new SecureRandom();
+		int x = Math.abs(r.nextInt());
+		String clnt = new String("client #" + idCl + ": ");
+    	Long longx = Long.valueOf(x);
+    	BigInteger bix = BigInteger.valueOf(longx);// propio del cliente
+		BigInteger g2y = G2Y(new BigInteger(g),bix, new BigInteger(p));
+    	String str_valor_comun = g2y.toString();
+    	System.out.println(clnt + "G2X: "+str_valor_comun);
+		socket_out.println(str_valor_comun);
+
+		//Part 3: Diffie Hellman Master Key calculation
+		BigInteger DH_master_key = calcular_llave_maestra(new BigInteger(g2x),bix, new BigInteger(p));
+
 
 		socket.close();
 		socket_out.close();
 		socket_in.close();
 	}	
+
+	
 }
