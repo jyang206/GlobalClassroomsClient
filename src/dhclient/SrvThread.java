@@ -153,7 +153,9 @@ public class SrvThread extends Thread{
     		System.out.println(dlg + " llave maestra: " + str_llave);
     		
     		// generating symmetric key
+			//llave del servidor para cifrar (simetrica)
 			SecretKey sk_srv = f.csk1(str_llave);
+			//llave del HMAC para cifrar (simetrica)
 			SecretKey sk_mac = f.csk2(str_llave);
 			
 			String str_consulta = dc.readLine();
@@ -174,7 +176,7 @@ public class SrvThread extends Thread{
 	    	if (verificar) {
 	    		System.out.println("==========> Test 1b: passed (Client sends matching query and MAC).");
 	    		
-	        	String str_original = new String(descifrado, StandardCharsets.UTF_8);
+	        	String str_original = byte2str(descifrado);
 	        	int valor = Integer.parseInt(str_original) + 1;
 	    		System.out.println(dlg + "Query answer:" + valor);
 	        	String str_valor = Integer.toString(valor);
@@ -266,7 +268,7 @@ public class SrvThread extends Thread{
 	    	if (verificar) {
 	    		System.out.println("==========> Test 2b: passed (Client sends matching query and MAC).");
 
-	        	String str_original = new String(descifrado, StandardCharsets.UTF_8);
+	        	String str_original = byte2str(descifrado);
 	        	int valor = Integer.parseInt(str_original) + 1;
 	    		System.out.println(dlg + "Query answer:" + valor);
 	        	String str_valor = Integer.toString(valor);
