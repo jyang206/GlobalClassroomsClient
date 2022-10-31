@@ -145,6 +145,21 @@ public class ClientThrd extends Thread{
 
       if(ans_serv.equals("OK")) {
         System.out.println("Server OK");
+        
+        //recieve Ans, HMAC, iv2
+        String encrypted_ans = socket_in.readLine();
+        String hmac_ans = socket_in.readLine();
+        String iv2_str = socket_in.readLine();
+        byte[] ans_bytearr = util.str2byte(encrypted_ans);
+        byte[] hmac_ans_bytearr = util.str2byte(hmac_ans);
+        byte[] iv2_bytearr = util.str2byte(iv2_str);  
+
+        //decrypt ans and verify hmac
+        IvParameterSpec iv2_spec = new IvParameterSpec(iv2_bytearr);
+        byte[] ans_decif = f.sdec(ans_bytearr, sk_clnt, iv2_spec);
+        boolean verificar_rta = f.checkInt(ans_decif, sk_macClntKey, hmac_ans_bytearr);
+        //validar verificacion y enviar rta
+
       }
       else {
         System.out.println("Error en la comunicacion con el servidor");
