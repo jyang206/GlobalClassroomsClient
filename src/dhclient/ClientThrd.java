@@ -13,6 +13,7 @@ import java.security.PublicKey;
 import java.security.SecureRandom;
 
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 
 public class ClientThrd extends Thread{
     
@@ -40,6 +41,12 @@ public class ClientThrd extends Thread{
       //la base es el y del otro / el exponente es el x propio / el modulo es el p compartido 
       return base.modPow(exponente, modulo);
     }
+
+    private byte[] generateIvBytes() {
+	    byte[] iv = new byte[16];
+	    new SecureRandom().nextBytes(iv);
+	    return iv;
+	  }
   
     public void run() {
       try{
@@ -96,11 +103,11 @@ public class ClientThrd extends Thread{
       SecureRandom r = new SecureRandom();
       int x = Math.abs(r.nextInt());
       String clnt = new String("client #" + idCl + ": ");
-        Long longx = Long.valueOf(x);
-        BigInteger bix = BigInteger.valueOf(longx);// propio del cliente
+      Long longx = Long.valueOf(x);
+      BigInteger bix = BigInteger.valueOf(longx);// propio del cliente
       BigInteger g2y = G2Y(new BigInteger(g),bix, new BigInteger(p));
-        String str_valor_comun = g2y.toString();
-        System.out.println(clnt + "G2X: "+str_valor_comun);
+      String str_valor_comun = g2y.toString();
+      System.out.println(clnt + "G2X: "+str_valor_comun);
       socket_out.println(str_valor_comun);
 
       //Part 3: Diffie Hellman Master Key calculation
@@ -108,10 +115,42 @@ public class ClientThrd extends Thread{
       String str_llave = DH_master_key.toString();
       // generating symmetric key
 			//llave del servidor para cifrar (simetrica)
-			SecretKey sk_srv = f.csk1(str_llave);
+			SecretKey sk_clnt = f.csk1(str_llave);
 			//llave del HMAC para cifrar (simetrica)
-			SecretKey sk_mac = f.csk2(str_llave);
+			SecretKey sk_macClntKey = f.csk2(str_llave);
+      //Generate iv1
+      byte[] iv1 = generateIvBytes();
+      String iv1_str = util.byte2str(iv1);
+      IvParameterSpec iv1_spec = new IvParameterSpec(iv1);
       
+      //send number to server cifered
+      // generate random int
+      int num = Math.abs(r.nextInt());
+      String num_str = new String(Integer.toString(num));
+      byte[] num_bytearr = util.str2byte(num_str);
+      // cifer the int
+      byte[] num_cif = f.senc(num_bytearr, sk_clnt, iv1_spec, "Cliente");
+      // send the int
+      socket_out.println(util.byte2str(num_cif));
+      // send hmac
+      byte[] hmac = f.hmac(num_bytearr, sk_macClntKey);
+      socket_out.println(util.byte2str(hmac));
+
+      // send iv1
+      socket_out.println(iv1_str);
+
+      //Waits until the server sends "OK" / "ERROR"
+
+      String ans_serv = socket_in.readLine();
+
+      if(ans_serv.equals("OK")) {
+        System.out.println("Server OK");
+      }
+      else {
+        System.out.println("Error en la comunicacion con el servidor");
+        return;
+      }
+
 
       socket.close();
       socket_out.close();
