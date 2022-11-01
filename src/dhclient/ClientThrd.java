@@ -126,8 +126,8 @@ public class ClientThrd extends Thread{
       //send number to server cifered
       // generate random int
       int num = Math.abs(r.nextInt());
-      String num_str = new String(Integer.toString(num));
-      byte[] num_bytearr = util.str2byte(num_str);
+      String num_str = String.valueOf(num);
+      byte[] num_bytearr = num_str.getBytes();
       // cifer the int
       byte[] num_cif = f.senc(num_bytearr, sk_clnt, iv1_spec, "Cliente");
       // send the int
