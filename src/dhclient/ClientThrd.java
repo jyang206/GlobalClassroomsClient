@@ -87,22 +87,25 @@ public class ClientThrd extends Thread{
       System.out.println("sig: " + sig);
 
       byte[] sig_bytearr = util.str2byte(sig);
-
+      
+      String clnt = new String("client #" + clntid + ": ");
       //Part 1: Verify Signature
       try {
         if(f.checkSignature(publicKey, sig_bytearr, msg)) {
           socket_out.println("OK");
         } else {
           socket_out.println("ERROR");
+          System.out.println(clnt+ " signature does not match");
+          return;
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        System.out.println("Error revisando la firma");
       }
       //Part 2: Calculate g2y and send to server
       
       SecureRandom r = new SecureRandom();
       int x = Math.abs(r.nextInt());
-      String clnt = new String("client #" + clntid + ": ");
+      
       Long longx = Long.valueOf(x);
       BigInteger bix = BigInteger.valueOf(longx);// propio del cliente
       BigInteger g2y = G2Y(new BigInteger(g),bix, new BigInteger(p));
@@ -126,7 +129,9 @@ public class ClientThrd extends Thread{
       
       //send number to server cifered
       // generate random int
-      int num = Math.abs(r.nextInt());
+      //int num = Math.abs(r.nextInt());
+      int num=10;
+
       String num_str = String.valueOf(num);
       byte[] num_bytearr = num_str.getBytes();
       // cifer the int
@@ -145,13 +150,13 @@ public class ClientThrd extends Thread{
       String ans_serv = socket_in.readLine();
 
       if(ans_serv.equals("OK")) {
-        System.out.println("Server OK");
+        System.out.println("Server OK " + clnt);
         
         //recieve Ans, HMAC, iv2
         String encrypted_ans = socket_in.readLine();
         String hmac_ans = socket_in.readLine();
         String iv2_str = socket_in.readLine();
-        
+
         byte[] ans_bytearr = util.str2byte(encrypted_ans);
         byte[] hmac_ans_bytearr = util.str2byte(hmac_ans);
         byte[] iv2_bytearr = util.str2byte(iv2_str);  
