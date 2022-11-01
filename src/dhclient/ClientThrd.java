@@ -20,14 +20,15 @@ public class ClientThrd extends Thread{
     private Socket socket;
     private ClientUtil util;
     private SecurityFunctions f;
-    private String clnt;
+    private int clntid;
     private int serverPort;
     private InetAddress host;
 
 
-    public ClientThrd(Socket socket, int clntid, int serverPort) {
-        this.socket = socket;
-        this.clnt = clnt;
+    public ClientThrd(int clntid, int serverPort) {
+
+        this.clntid = clntid;
+        this.serverPort=serverPort;
         util = new ClientUtil();
         f = new SecurityFunctions();
     }
@@ -99,20 +100,20 @@ public class ClientThrd extends Thread{
       }
       //Part 2: Calculate g2y and send to server
       
-      int idCl = 1;
       SecureRandom r = new SecureRandom();
       int x = Math.abs(r.nextInt());
-      String clnt = new String("client #" + idCl + ": ");
+      String clnt = new String("client #" + clntid + ": ");
       Long longx = Long.valueOf(x);
       BigInteger bix = BigInteger.valueOf(longx);// propio del cliente
       BigInteger g2y = G2Y(new BigInteger(g),bix, new BigInteger(p));
       String str_valor_comun = g2y.toString();
-      System.out.println(clnt + "G2X: "+str_valor_comun);
+      System.out.println(clnt + "G^Y: "+str_valor_comun);
       socket_out.println(str_valor_comun);
 
       //Part 3: Diffie Hellman Master Key calculation
       BigInteger DH_master_key = calcular_llave_maestra(new BigInteger(g2x),bix, new BigInteger(p));
       String str_llave = DH_master_key.toString();
+      System.out.println(clnt + "Llave maestra: "+str_llave);
       // generating symmetric key
 			//llave del servidor para cifrar (simetrica)
 			SecretKey sk_clnt = f.csk1(str_llave);
@@ -150,6 +151,7 @@ public class ClientThrd extends Thread{
         String encrypted_ans = socket_in.readLine();
         String hmac_ans = socket_in.readLine();
         String iv2_str = socket_in.readLine();
+        
         byte[] ans_bytearr = util.str2byte(encrypted_ans);
         byte[] hmac_ans_bytearr = util.str2byte(hmac_ans);
         byte[] iv2_bytearr = util.str2byte(iv2_str);  
@@ -160,8 +162,15 @@ public class ClientThrd extends Thread{
         boolean verificar_rta = f.checkInt(ans_decif, sk_macClntKey, hmac_ans_bytearr);
         //validar verificacion y enviar rta
 
+        if (verificar_rta) {
+          socket_out.println("OK");
+        }
+        else {
+          socket_out.println("ERROR");
+        }
       }
       else {
+        socket_out.println("ERROR");
         System.out.println("Error en la comunicacion con el servidor");
         return;
       }
@@ -173,6 +182,7 @@ public class ClientThrd extends Thread{
     }
     catch (Exception e) {
       e.printStackTrace();
+      System.out.println("Client Thread " + clntid + " finished");
     }
   }
 }
