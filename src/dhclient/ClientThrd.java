@@ -162,8 +162,15 @@ public class ClientThrd extends Thread{
         boolean verificar_rta = f.checkInt(ans_decif, sk_macClntKey, hmac_ans_bytearr);
         //validar verificacion y enviar rta
 
+        if (verificar_rta) {
+          socket_out.println("OK");
+        }
+        else {
+          socket_out.println("ERROR");
+        }
       }
       else {
+        socket_out.println("ERROR");
         System.out.println("Error en la comunicacion con el servidor");
         return;
       }
@@ -175,6 +182,7 @@ public class ClientThrd extends Thread{
     }
     catch (Exception e) {
       e.printStackTrace();
+      System.out.println("Client Thread " + clntid + " finished");
     }
   }
 }
