@@ -2,16 +2,13 @@
 
 ## How to run
 1. Clone repository to local
-1. Start the Diffie-Hellman server locally
-2. Compile and run ClientMain located in src/dhclient/
+2. Start the Diffie-Hellman server locally
+3. Ensure that the port number specified in ClientMain matches with the server port (should be 4030)
+3. Compile and run ClientMain located in src/dhclient/
+4. On startup, the program will ask for an integer number of threads
+5. The specified number of threads will be spawned, and each thread will initiate one request.
 
 ## Current Progress
-- Part 1:
-	- Current behavior: Will initiate one connection, verify signature, respond with OK or ERROR, then exit.
-	- Signature verification works
-	- Will pass tests 0, 1a, 2a (Only signature verification tests
+- All parts are done
 
 ## Todo
-- Part 2: DH Key Exchange
-- Part 3: Final Integrity Verification
-- Implement multithreading?
