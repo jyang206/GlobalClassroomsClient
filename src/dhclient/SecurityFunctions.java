@@ -103,7 +103,7 @@ public class SecurityFunctions {
 		decifrador.init(Cipher.ENCRYPT_MODE, key, iv); 
 		byte[] tmp = decifrador.doFinal(msg);
 	    long end = System.nanoTime();      
-	    System.out.println(id+" --- Elapsed Time for SYM encryption in nano seconds: "+ (end-start));   
+	    //System.out.println(id+" --- Elapsed Time for SYM encryption in nano seconds: "+ (end-start));   
 		return tmp;
 	}
 	

@@ -11,7 +11,7 @@ import java.net.SocketImpl;
 import java.net.UnknownHostException;
 import java.security.PublicKey;
 import java.security.SecureRandom;
-
+import java.util.Random;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
@@ -23,6 +23,9 @@ public class ClientThrd extends Thread{
     private int clntid;
     private int serverPort;
     private InetAddress host;
+    long start=0;
+    long end=0;
+    final int ns_s=1000000000;
 
 
     public ClientThrd(int clntid, int serverPort) {
@@ -31,6 +34,7 @@ public class ClientThrd extends Thread{
         this.serverPort=serverPort;
         util = new ClientUtil();
         f = new SecurityFunctions();
+        
     }
 
     private static BigInteger G2Y(BigInteger base, BigInteger exponente, BigInteger modulo) {
@@ -81,17 +85,25 @@ public class ClientThrd extends Thread{
       //Message that was used for signing
       String msg = g+","+p+","+g2x;
 
-      System.out.println("g: " + g);
-      System.out.println("P: " + p);
-      System.out.println("g2x: " + g2x);
-      System.out.println("sig: " + sig);
+      //System.out.println("g: " + g);
+      //System.out.println("P: " + p);
+      //System.out.println("g2x: " + g2x);
+      //System.out.println("sig: " + sig);
 
       byte[] sig_bytearr = util.str2byte(sig);
       
       String clnt = new String("client #" + clntid + ": ");
       //Part 1: Verify Signature
+     
+
       try {
-        if(f.checkSignature(publicKey, sig_bytearr, msg)) {
+        start=System.nanoTime();
+        boolean verify=f.checkSignature(publicKey, sig_bytearr, msg);
+        end=System.nanoTime();
+        long check_signature_time=(end-start);
+        System.out.println(clnt + "Tiempo verificacion: " + check_signature_time + " s");
+
+        if(verify) {
           socket_out.println("OK");
         } else {
           socket_out.println("ERROR");
@@ -108,15 +120,19 @@ public class ClientThrd extends Thread{
       
       Long longx = Long.valueOf(x);
       BigInteger bix = BigInteger.valueOf(longx);// propio del cliente
+
+      start=System.nanoTime();
       BigInteger g2y = G2Y(new BigInteger(g),bix, new BigInteger(p));
+      end=System.nanoTime();
+      long g2y_time=(end-start);
+      System.out.println(clnt + "Tiempo g2y: " + g2y_time + " ns");
+
       String str_valor_comun = g2y.toString();
-      System.out.println(clnt + "G^Y: "+str_valor_comun);
       socket_out.println(str_valor_comun);
 
       //Part 3: Diffie Hellman Master Key calculation
       BigInteger DH_master_key = calcular_llave_maestra(new BigInteger(g2x),bix, new BigInteger(p));
       String str_llave = DH_master_key.toString();
-      System.out.println(clnt + "Llave maestra: "+str_llave);
       // generating symmetric key
 			//llave del servidor para cifrar (simetrica)
 			SecretKey sk_clnt = f.csk1(str_llave);
@@ -129,17 +145,28 @@ public class ClientThrd extends Thread{
       
       //send number to server cifered
       // generate random int
-      //int num = Math.abs(r.nextInt());
-      int num=10;
+      Random ran = new Random();
+      int num= ran.nextInt(100) + 1;
+      
 
       String num_str = String.valueOf(num);
       byte[] num_bytearr = num_str.getBytes();
       // cifer the int
+      start = System.nanoTime();
       byte[] num_cif = f.senc(num_bytearr, sk_clnt, iv1_spec, "Cliente");
+       end = System.nanoTime();
+      long cifer_time = (end - start);
+      System.out.println(clnt+ "Tiempo de cifrado: " +  cifer_time + "s");
+
       // send the int
       socket_out.println(util.byte2str(num_cif));
       // send hmac
+      start=System.nanoTime();
       byte[] hmac = f.hmac(num_bytearr, sk_macClntKey);
+      end = System.nanoTime();
+      long autentication_code__time = (end - start);
+      System.out.println(clnt + "Tiempo de autenticacion: " +  autentication_code__time + "s");
+
       socket_out.println(util.byte2str(hmac));
 
       // send iv1
@@ -150,7 +177,7 @@ public class ClientThrd extends Thread{
       String ans_serv = socket_in.readLine();
 
       if(ans_serv.equals("OK")) {
-        System.out.println("Server OK " + clnt);
+        //System.out.println("Server OK " + clnt);
         
         //recieve Ans, HMAC, iv2
         String encrypted_ans = socket_in.readLine();
@@ -187,7 +214,7 @@ public class ClientThrd extends Thread{
     }
     catch (Exception e) {
       e.printStackTrace();
-      System.out.println("Client Thread " + clntid + " finished");
+      //System.out.println("Client Thread " + clntid + " finished");
     }
   }
 }
